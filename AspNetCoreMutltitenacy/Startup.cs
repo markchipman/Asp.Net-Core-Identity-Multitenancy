@@ -11,9 +11,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using AspNetCore.Data;
-using AspNetCore.Models;
-using AspNetCore.Services;
+using AspNetCoreMultitenancy.Data;
+using AspNetCoreMultitenancy.Models;
+using AspNetCoreMultitenancy.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -22,7 +22,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using OpenIddict.Core;
 using OpenIddict.Models;
 
-namespace AspNetCore
+namespace AspNetCoreMultitenancy
 {
     public class Startup
     {

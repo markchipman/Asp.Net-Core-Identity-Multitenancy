@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Metadata;
 
-namespace AspNetCore.Migrations
+namespace AspNetCoreMultitenancy.Migrations
 {
     public partial class initial : Migration
     {

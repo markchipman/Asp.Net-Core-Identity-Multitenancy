@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 using AspNet.Security.OpenIdConnect.Extensions;
 using AspNet.Security.OpenIdConnect.Primitives;
 using AspNet.Security.OpenIdConnect.Server;
-using AspNetCore.Models;
+using AspNetCoreMultitenancy.Models;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http.Authentication;
@@ -21,7 +21,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using OpenIddict.Core;
 
-namespace AspNetCore.Controllers
+namespace AspNetCoreMultitenancy.Controllers
 {
     public class AuthorizationController : Controller
     {

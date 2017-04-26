@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace AspNetCore.Services
+namespace AspNetCoreMultitenancy.Services
 {
     public interface ISmsSender
     {

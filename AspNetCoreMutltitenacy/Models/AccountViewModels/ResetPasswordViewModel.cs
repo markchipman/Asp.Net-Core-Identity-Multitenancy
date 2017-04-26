@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace AspNetCore.Models.AccountViewModels
+namespace AspNetCoreMultitenancy.Models.AccountViewModels
 {
     public class ResetPasswordViewModel
     {

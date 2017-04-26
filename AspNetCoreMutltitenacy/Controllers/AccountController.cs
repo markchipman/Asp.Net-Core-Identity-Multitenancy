@@ -9,11 +9,11 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using AspNetCore.Models;
-using AspNetCore.Models.AccountViewModels;
-using AspNetCore.Services;
+using AspNetCoreMultitenancy.Models;
+using AspNetCoreMultitenancy.Models.AccountViewModels;
+using AspNetCoreMultitenancy.Services;
 
-namespace AspNetCore.Controllers
+namespace AspNetCoreMultitenancy.Controllers
 {
     [Authorize]
     public class AccountController : Controller

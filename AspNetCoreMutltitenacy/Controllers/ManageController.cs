@@ -7,11 +7,11 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using AspNetCore.Models;
-using AspNetCore.Models.ManageViewModels;
-using AspNetCore.Services;
+using AspNetCoreMultitenancy.Models;
+using AspNetCoreMultitenancy.Models.ManageViewModels;
+using AspNetCoreMultitenancy.Services;
 
-namespace AspNetCore.Controllers
+namespace AspNetCoreMultitenancy.Controllers
 {
     [Authorize]
     public class ManageController : Controller

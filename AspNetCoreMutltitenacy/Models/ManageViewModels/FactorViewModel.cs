@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace AspNetCore.Models.ManageViewModels
+namespace AspNetCoreMultitenancy.Models.ManageViewModels
 {
     public class FactorViewModel
     {

@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using AspNetCore.Data;
+using AspNetCoreMultitenancy.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
-namespace AspNetCore.Models
+namespace AspNetCoreMultitenancy.Models
 {
     public interface ITenantIdProvider<out T>
         where T : IEquatable<T>

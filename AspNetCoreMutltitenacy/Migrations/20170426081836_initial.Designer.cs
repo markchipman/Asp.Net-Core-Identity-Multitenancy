@@ -3,9 +3,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
-using AspNetCore.Data;
+using AspNetCoreMultitenancy.Data;
 
-namespace AspNetCore.Migrations
+namespace AspNetCoreMultitenancy.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
     [Migration("20170426081836_initial")]

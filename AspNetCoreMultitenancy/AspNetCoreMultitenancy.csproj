@@ -11,6 +11,10 @@
   <PropertyGroup>
     <UserSecretsId>aspnet-AspNetCore-e001b8aa-70a2-4ee5-86ff-1ff3bb873dfd</UserSecretsId>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Models\ApplicationTenantIdProvider.Generic.cs" />
+  </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.1.0-beta1" />
     <PackageReference Include="Microsoft.AspNetCore" Version="1.1.1" />

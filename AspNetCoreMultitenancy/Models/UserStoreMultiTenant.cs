@@ -14,28 +14,28 @@ namespace AspNetCoreMultitenancy.Models
         where TKey : IEquatable<TKey>
         where TTenantId : IEquatable<TTenantId>
     {
-        public TTenantId TenantKey { get; set; }
+        public TTenantId TenantId { get; set; }
         public UserStoreMultiTenant(ApplicationDbContext context, ITenantIdProvider<TTenantId> tenantProvider, IdentityErrorDescriber describer = null) : base(context, describer)
         {
-            this.TenantKey = tenantProvider.TenantId;
+            this.TenantId = tenantProvider.TenantId;
         }
 
         public override Task<IdentityResult> CreateAsync(TUser user, CancellationToken cancellationToken = new CancellationToken())
         {
-            user.TenantId = this.TenantKey;
+            user.TenantId = this.TenantId;
             return base.CreateAsync(user, cancellationToken);
         }
         public override Task<TUser> FindByNameAsync(string normalizedUserName, CancellationToken cancellationToken = default(CancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
-            return EntityFrameworkQueryableExtensions.FirstOrDefaultAsync(Users, u => u.NormalizedUserName == normalizedUserName && u.TenantId.Equals(this.TenantKey), cancellationToken);
+            return EntityFrameworkQueryableExtensions.FirstOrDefaultAsync(Users, u => u.NormalizedUserName == normalizedUserName && u.TenantId.Equals(this.TenantId), cancellationToken);
         }
         public override Task<TUser> FindByEmailAsync(string normalizedEmail, CancellationToken cancellationToken = default(CancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
-            return EntityFrameworkQueryableExtensions.FirstOrDefaultAsync(Users, u => u.NormalizedEmail == normalizedEmail && u.TenantId.Equals(this.TenantKey), cancellationToken);
+            return EntityFrameworkQueryableExtensions.FirstOrDefaultAsync(Users, u => u.NormalizedEmail == normalizedEmail && u.TenantId.Equals(this.TenantId), cancellationToken);
         }
     }
 }

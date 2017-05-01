@@ -7,7 +7,7 @@ namespace AspNetCoreMultitenancy.Models
     {
         public ApplicationUserStore(ApplicationDbContext context, ApplicationTenantIdProvider tenantProvider) : base(context, tenantProvider)
         {
-            this.TenantKey = tenantProvider.TenantId;
+            this.TenantId = tenantProvider.TenantId;
         }
     }
 }

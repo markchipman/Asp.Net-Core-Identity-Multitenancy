@@ -26,33 +26,21 @@ namespace AspNetCoreMultitenancy
 {
     public class Startup
     {
-        public Startup(IHostingEnvironment env)
+        public Startup(IConfiguration configuration)
         {
-            var builder = new ConfigurationBuilder()
-                .SetBasePath(env.ContentRootPath)
-                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-                .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true)
-                .AddEnvironmentVariables();
-            if (env.IsDevelopment())
-            {
-                // For more details on using the user secret store see https://go.microsoft.com/fwlink/?LinkID=532709
-                builder.AddUserSecrets<Startup>();
-            }
-
-            Configuration = builder.Build();
+            Configuration = configuration;
         }
 
-        public IConfigurationRoot Configuration { get; }
+        public IConfiguration Configuration { get; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddCors();  // <- ADD THIS
-            // Add framework services.
+            services.AddMvc();
+
             services.AddDbContext<ApplicationDbContext>(options =>
             {
-                //// Configure the context to use an in-memory store.
-                //options.UseInMemoryDatabase();
+                // Configure the context to use Microsoft SQL Server.
                 options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"));
 
                 // Register the entity sets needed by OpenIddict.
@@ -61,9 +49,11 @@ namespace AspNetCoreMultitenancy
                 options.UseOpenIddict<Guid>();
             });
 
+            // Register the Identity services.
             services.AddScoped<IRoleStore<ApplicationRole>, ApplicationRoleStore>();
             services.AddScoped<IUserStore<ApplicationUser>, ApplicationUserStore>();
-            services.AddScoped(serviceProvider =>new ApplicationTenantIdProvider("TenantId-1"));
+            // change "TenantId-1" to name your tenant...
+            services.AddScoped(serviceProvider => new ApplicationTenantIdProvider("TenantId-2"));
             services.AddIdentity<ApplicationUser, ApplicationRole>(o =>
                 {
                     o.User.RequireUniqueEmail = false;
@@ -73,21 +63,16 @@ namespace AspNetCoreMultitenancy
                     o.Password.RequireNonAlphanumeric = false;
                     o.Password.RequiredLength = 6;
                 }).AddUserStore<ApplicationUserStore>()
-                // Change last paramenter to the matching UserId type!
-                .AddEntityFrameworkStores<ApplicationDbContext, Guid>();
+                .AddDefaultTokenProviders();
 
-            // Configure Identity to use the same JWT claims as OpenIddict instead
-            // of the legacy WS-Federation claims it uses by default (ClaimTypes),
-            // which saves you from doing the mapping in your authorization controller.
-            services.Configure<IdentityOptions>(options =>
-            {
-                options.ClaimsIdentity.UserNameClaimType = OpenIdConnectConstants.Claims.Name;
-                options.ClaimsIdentity.UserIdClaimType = OpenIdConnectConstants.Claims.Subject;
-                options.ClaimsIdentity.RoleClaimType = OpenIdConnectConstants.Claims.Role;
-            });
+            // Register the OAuth2 validation handler.
+            services.AddAuthentication()
+                .AddOAuthValidation();
 
             // Register the OpenIddict services.
-            services.AddOpenIddict<Guid>(options =>
+            // Note: use the generic overload if you need
+            // to replace the default OpenIddict entities.
+            services.AddOpenIddict(options =>
             {
                 // Register the Entity Framework stores.
                 options.AddEntityFrameworkCoreStores<ApplicationDbContext>();
@@ -97,94 +82,45 @@ namespace AspNetCoreMultitenancy
                 // bind OpenIdConnectRequest or OpenIdConnectResponse parameters.
                 options.AddMvcBinders();
 
-                // Enable the token endpoint.
+                // Enable the token endpoint (required to use the password flow).
                 options.EnableTokenEndpoint("/connect/token");
 
-                // Enable the password flow.
-                options.AllowPasswordFlow().AllowRefreshTokenFlow(); 
+                // Allow client applications to use the grant_type=password flow.
+                options.AllowPasswordFlow();
+
+                //// Enable the authorization and token endpoints (required to use the code flow).
+                //options.EnableAuthorizationEndpoint("/connect/authorize")
+                //    .EnableTokenEndpoint("/connect/token");
+
+                //// Allow client applications to use the code flow.
+                //options.AllowAuthorizationCodeFlow();
 
                 // During development, you can disable the HTTPS requirement.
                 options.DisableHttpsRequirement();
-
-                // Note: to use JWT access tokens instead of the default
-                // encrypted format, the following lines are required:
-                //
-                // options.UseJsonWebTokens();
-                // options.AddEphemeralSigningKey();
             });
-            services.AddMvc();
-
             // Add application services.
             services.AddTransient<IEmailSender, AuthMessageSender>();
             services.AddTransient<ISmsSender, AuthMessageSender>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
-            loggerFactory.AddConsole(Configuration.GetSection("Logging"));
-            loggerFactory.AddDebug();
+            app.UseAuthentication();
 
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
-                app.UseDatabaseErrorPage();
                 app.UseBrowserLink();
+                app.UseDatabaseErrorPage();
             }
             else
             {
                 app.UseExceptionHandler("/Home/Error");
             }
 
-            app.UseCors(builder =>
-            {
-                //builder.WithOrigins("http://localhost:5055");
-                builder.AllowAnyHeader();
-                builder.AllowAnyMethod();
-                builder.AllowAnyOrigin();
-            });
-
             app.UseStaticFiles();
 
-            app.UseIdentity();
-
-            // Add external authentication middleware below. To configure them please see https://go.microsoft.com/fwlink/?LinkID=532715
-            // Add a middleware used to validate access
-            // tokens and protect the API endpoints.
-            app.UseOAuthValidation();
-
-            // If you prefer using JWT, don't forget to disable the automatic
-            // JWT -> WS-Federation claims mapping used by the JWT middleware:
-            //
-            // JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
-            // JwtSecurityTokenHandler.DefaultOutboundClaimTypeMap.Clear();
-            //
-            // app.UseJwtBearerAuthentication(new JwtBearerOptions
-            // {
-            //     Authority = "http://localhost:58795/",
-            //     Audience = "resource_server",
-            //     RequireHttpsMetadata = false,
-            //     TokenValidationParameters = new TokenValidationParameters
-            //     {
-            //         NameClaimType = OpenIdConnectConstants.Claims.Subject,
-            //         RoleClaimType = OpenIdConnectConstants.Claims.Role
-            //     }
-            // });
-
-            // Alternatively, you can also use the introspection middleware.
-            // Using it is recommended if your resource server is in a
-            // different application/separated from the authorization server.
-            //
-            // app.UseOAuthIntrospection(options =>
-            // {
-            //     options.Authority = new Uri("http://localhost:58795/");
-            //     options.Audiences.Add("resource_server");
-            //     options.ClientId = "resource_server";
-            //     options.ClientSecret = "875sqd4s5d748z78z7ds1ff8zz8814ff88ed8ea4z4zzd";
-            //     options.RequireHttpsMetadata = false;
-            // });
-
-            app.UseOpenIddict();
 
             app.UseMvc(routes =>
             {
@@ -192,9 +128,6 @@ namespace AspNetCoreMultitenancy
                     name: "default",
                     template: "{controller=Home}/{action=Index}/{id?}");
             });
-            //app.UseMvcWithDefaultRoute();
-            app.UseWelcomePage();
-            // Make sure to drop unique indexes on rolenames username and emails, which are created by default from Asp.Net Core Identity!!
             InitializeAsync(app.ApplicationServices, CancellationToken.None).GetAwaiter().GetResult();
         }
         private async Task InitializeAsync(IServiceProvider services, CancellationToken cancellationToken)

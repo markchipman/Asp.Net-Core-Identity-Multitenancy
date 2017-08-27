@@ -136,7 +136,6 @@ namespace AspNetCoreMultitenancy.Controllers
 
             // Create a new authentication ticket holding the user identity.
             var ticket = new AuthenticationTicket(principal,
-                new AuthenticationProperties(),
                 OpenIdConnectServerDefaults.AuthenticationScheme);
 
             // Set the list of scopes granted to the client application.

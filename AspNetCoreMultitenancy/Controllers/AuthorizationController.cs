@@ -7,15 +7,13 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Security.Claims;
 using System.Threading.Tasks;
 using AspNet.Security.OpenIdConnect.Extensions;
 using AspNet.Security.OpenIdConnect.Primitives;
 using AspNet.Security.OpenIdConnect.Server;
 using AspNetCoreMultitenancy.Models;
+using AspNetCoreMultitenancy.Models;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http.Authentication;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
@@ -38,6 +36,7 @@ namespace AspNetCoreMultitenancy.Controllers
             _signInManager = signInManager;
             _userManager = userManager;
         }
+
         /// <summary>
         /// The client call looks like this:
         /// ->POST http://localhost:51406/connect/token 
@@ -65,54 +64,15 @@ namespace AspNetCoreMultitenancy.Controllers
                     });
                 }
 
-                // Ensure the user is allowed to sign in.
-                if (!await _signInManager.CanSignInAsync(user))
-                {
-                    return BadRequest(new OpenIdConnectResponse
-                    {
-                        Error = OpenIdConnectConstants.Errors.InvalidGrant,
-                        ErrorDescription = "The specified user is not allowed to sign in."
-                    });
-                }
-
-                // Reject the token request if two-factor authentication has been enabled by the user.
-                if (_userManager.SupportsUserTwoFactor && await _userManager.GetTwoFactorEnabledAsync(user))
-                {
-                    return BadRequest(new OpenIdConnectResponse
-                    {
-                        Error = OpenIdConnectConstants.Errors.InvalidGrant,
-                        ErrorDescription = "The specified user is not allowed to sign in."
-                    });
-                }
-
-                // Ensure the user is not already locked out.
-                if (_userManager.SupportsUserLockout && await _userManager.IsLockedOutAsync(user))
+                // Validate the username/password parameters and ensure the account is not locked out.
+                var result = await _signInManager.CheckPasswordSignInAsync(user, request.Password, lockoutOnFailure: true);
+                if (!result.Succeeded)
                 {
                     return BadRequest(new OpenIdConnectResponse
                     {
                         Error = OpenIdConnectConstants.Errors.InvalidGrant,
                         ErrorDescription = "The username/password couple is invalid."
                     });
-                }
-
-                // Ensure the password is valid.
-                if (!await _userManager.CheckPasswordAsync(user, request.Password))
-                {
-                    if (_userManager.SupportsUserLockout)
-                    {
-                        await _userManager.AccessFailedAsync(user);
-                    }
-
-                    return BadRequest(new OpenIdConnectResponse
-                    {
-                        Error = OpenIdConnectConstants.Errors.InvalidGrant,
-                        ErrorDescription = "The username/password couple is invalid."
-                    });
-                }
-
-                if (_userManager.SupportsUserLockout)
-                {
-                    await _userManager.ResetAccessFailedCountAsync(user);
                 }
 
                 // Create a new authentication ticket.
@@ -136,6 +96,7 @@ namespace AspNetCoreMultitenancy.Controllers
 
             // Create a new authentication ticket holding the user identity.
             var ticket = new AuthenticationTicket(principal,
+                new AuthenticationProperties(),
                 OpenIdConnectServerDefaults.AuthenticationScheme);
 
             // Set the list of scopes granted to the client application.
@@ -175,7 +136,7 @@ namespace AspNetCoreMultitenancy.Controllers
                     destinations.Add(OpenIdConnectConstants.Destinations.IdentityToken);
                 }
 
-                claim.SetDestinations(OpenIdConnectConstants.Destinations.AccessToken);
+                claim.SetDestinations(destinations);
             }
 
             return ticket;
